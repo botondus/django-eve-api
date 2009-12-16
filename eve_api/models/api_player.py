@@ -26,7 +26,7 @@ class EVEPlayerCharacter(models.Model):
     objects = EVEPlayerCharacterManager()
     
     class Meta:
-        app_label = 'eve_db'
+        app_label = 'eve_api'
         verbose_name = 'Member Corporation'
         verbose_name_plural = 'Member Corporations'
 
@@ -44,7 +44,7 @@ class EVEPlayerAlliance(models.Model):
     objects = EVEPlayerAllianceManager()
     
     class Meta:
-        app_label = 'eve_db'
+        app_label = 'eve_api'
         ordering = ['date_founded']
         verbose_name = 'Player Alliance'
         verbose_name_plural = 'Player Alliances'
@@ -87,7 +87,7 @@ class EVEPlayerCorporation(models.Model):
     objects = EVEPlayerCorporationManager()
     
     class Meta:
-        app_label = 'eve_db'
+        app_label = 'eve_api'
         verbose_name = 'Player Corporation'
         verbose_name_plural = 'Player Corporations'
 
