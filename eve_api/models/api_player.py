@@ -2,8 +2,27 @@
 This module holds data from the EVE XML API.
 """
 from django.db import models
+from django.contrib.auth.models import User
 from eve_proxy.models import CachedDocument
 from eve_api.managers import EVEPlayerCorporationManager, EVEPlayerAllianceManager, EVEPlayerCharacterManager
+
+class EVEAccount(models.Model):
+    """
+    Use this class to store EVE user account information. Note that its use is
+    entirely optional and up to the developer's discretion.
+    """
+    user = models.ForeignKey(User)
+    description = models.CharField(max_length=50)
+    api_key = models.CharField(max_length=64)
+    api_user_id = models.IntegerField()
+    characters = models.ManyToManyField('EVEPlayerCharacter', blank=True,
+                                        null=True)
+
+    class Meta:
+        app_label = 'eve_api'
+        verbose_name = 'EVE Account'
+        verbose_name_plural = 'EVE Accounts'
+        ordering = ['api_user_id']
 
 class EVEPlayerCharacter(models.Model):
     """
