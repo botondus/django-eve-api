@@ -5,26 +5,51 @@ from django.db import models
 from django.contrib.auth.models import User
 from eve_proxy.models import CachedDocument
 from eve_api.managers import EVEPlayerCorporationManager, EVEPlayerAllianceManager, EVEPlayerCharacterManager
+from eve_api.app_defines import API_STATUS_CHOICES, API_STATUS_PENDING
 
-class EVEAccount(models.Model):
+class EVEAPIModel(models.Model):
+    """
+    A simple abstract base class to set some consistent fields on the models
+    that are updated from the EVE API.
+    """
+    api_last_updated = models.DateTimeField(blank=True, null=True,
+                                            verbose_name="Time last updated from API",
+                                            help_text="When this object was last updated from the EVE API.")
+    
+    class Meta:
+        abstract = True
+
+class EVEAccount(EVEAPIModel):
     """
     Use this class to store EVE user account information. Note that its use is
     entirely optional and up to the developer's discretion.
     """
-    user = models.ForeignKey(User)
-    description = models.CharField(max_length=50)
-    api_key = models.CharField(max_length=64)
-    api_user_id = models.IntegerField()
-    characters = models.ManyToManyField('EVEPlayerCharacter', blank=True,
+    user = models.ForeignKey(User, blank=True, null=True,
+                             help_text="User that owns this account")
+    description = models.CharField(max_length=50, blank=True,
+                                   help_text="User-provided description.")
+    api_key = models.CharField(max_length=64, verbose_name="API Key")
+    api_user_id = models.IntegerField(verbose_name="API User ID")
+    characters = models.ManyToManyField("EVEPlayerCharacter", blank=True,
                                         null=True)
+    api_status = models.IntegerField(choices=API_STATUS_CHOICES,
+                                     default=API_STATUS_PENDING,
+                                     verbose_name="API Status",
+                                     help_text="End result of the last attempt at updating this object from the API.")
 
     class Meta:
         app_label = 'eve_api'
         verbose_name = 'EVE Account'
         verbose_name_plural = 'EVE Accounts'
         ordering = ['api_user_id']
+        
+    def __unicode__(self):
+        return "(%d)" % self.id
 
-class EVEPlayerCharacter(models.Model):
+    def __str__(self):
+        return self.__unicode__()
+
+class EVEPlayerCharacter(EVEAPIModel):
     """
     Represents an individual player character within the game. Not to be
     confused with an account.
@@ -35,21 +60,31 @@ class EVEPlayerCharacter(models.Model):
     race = models.IntegerField(blank=True, null=True)
     # TODO: Choices field
     gender = models.IntegerField(blank=True, null=True)
-    balance = models.FloatField(blank=True, null=True)
-    attrib_intelligence = models.IntegerField(blank=True, null=True)
-    attrib_memory = models.IntegerField(blank=True, null=True)
-    attrib_charisma = models.IntegerField(blank=True, null=True)
-    attrib_perception = models.IntegerField(blank=True, null=True)
-    attrib_willpower = models.IntegerField(blank=True, null=True)
+    balance = models.FloatField("Account Balance", blank=True, null=True)
+    attrib_intelligence = models.IntegerField("Intelligence", blank=True, 
+                                              null=True)
+    attrib_memory = models.IntegerField("Memory", blank=True, null=True)
+    attrib_charisma = models.IntegerField("Charisma", blank=True, null=True)
+    attrib_perception = models.IntegerField("Perception", blank=True, null=True)
+    attrib_willpower = models.IntegerField("Willpower", blank=True, null=True)
     
     objects = EVEPlayerCharacterManager()
     
+    def __unicode__(self):
+        if self.name:
+            return "%s (%d)" % (self.name, self.id)
+        else:
+            return "(%d)" % self.id
+
+    def __str__(self):
+        return self.__unicode__()
+    
     class Meta:
         app_label = 'eve_api'
-        verbose_name = 'Member Corporation'
-        verbose_name_plural = 'Member Corporations'
+        verbose_name = 'Player Character'
+        verbose_name_plural = 'Player Characters'
 
-class EVEPlayerAlliance(models.Model):
+class EVEPlayerAlliance(EVEAPIModel):
     """
     Represents a player-controlled alliance. Updated from the alliance
     EVE XML API puller at intervals.
@@ -70,14 +105,14 @@ class EVEPlayerAlliance(models.Model):
     
     def __unicode__(self):
         if self.name:
-            return self.name
+            return "%s (%d)" % (self.name, self.id)
         else:
-            return "Alliance #%d" % self.id
+            return "(#%d)" % self.id
         
     def __str__(self):
         return self.__unicode__()
 
-class EVEPlayerCorporation(models.Model):
+class EVEPlayerCorporation(EVEAPIModel):
     """
     Represents a player-controlled corporation. Updated from a mixture of
     the alliance and corporation API pullers.

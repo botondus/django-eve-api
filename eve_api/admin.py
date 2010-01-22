@@ -4,6 +4,16 @@ Admin interface models. Automatically detected by admin.autodiscover().
 from django.contrib import admin
 from eve_api.models import *
 
+class EVEAccountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user')
+    search_fields = ['id']
+admin.site.register(EVEAccount, EVEAccountAdmin)
+
+class EVEPlayerCharacterAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'corporation')
+    search_fields = ['id', 'name']
+admin.site.register(EVEPlayerCharacter, EVEPlayerCharacterAdmin)
+
 class EVEPlayerCorporationInline(admin.TabularInline):
     model = EVEPlayerCorporation
     fields = ('name', 'ticker')
