@@ -10,7 +10,7 @@ class APIAuthException(Exception):
     
 class APINoUserIDException(Exception):
     """
-    Raised when a userID is required, but missing.
+    Raised when a userID is required, but missing or mal-formed.
     """
     def __str__(self):
         return "This query requires a valid userID, but yours is either missing or invalid."

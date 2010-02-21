@@ -58,6 +58,8 @@ def import_eve_account(api_key, user_id):
         except AttributeError:
             # This must be a Text node, ignore it.
             continue
+        
+    return account
     
 if __name__ == "__main__":
     """
