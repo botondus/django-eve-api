@@ -3,6 +3,7 @@ This module holds data from the EVE XML API.
 """
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from eve_proxy.models import CachedDocument
 from eve_api.managers import EVEPlayerCorporationManager, EVEPlayerAllianceManager, EVEPlayerCharacterManager
 from eve_api.app_defines import API_STATUS_CHOICES, API_STATUS_PENDING
@@ -48,6 +49,9 @@ class EVEAccount(EVEAPIModel):
 
     def __str__(self):
         return self.__unicode__()
+    
+    def get_absolute_url(self):
+        return reverse('profiles-edit_eve_account', args=[self.id])
 
 class EVEPlayerCharacter(EVEAPIModel):
     """
