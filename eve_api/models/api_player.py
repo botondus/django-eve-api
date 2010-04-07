@@ -5,10 +5,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from eve_proxy.models import CachedDocument
-from eve_api.managers import EVEPlayerCorporationManager, EVEPlayerAllianceManager, EVEPlayerCharacterManager
+from eve_api.managers import ApiPlayerCorporationManager, ApiPlayerAllianceManager, ApiPlayerCharacterManager
 from eve_api.app_defines import API_STATUS_CHOICES, API_STATUS_PENDING
 
-class EVEAPIModel(models.Model):
+class ApiModel(models.Model):
     """
     A simple abstract base class to set some consistent fields on the models
     that are updated from the EVE API.
@@ -20,7 +20,7 @@ class EVEAPIModel(models.Model):
     class Meta:
         abstract = True
 
-class EVEAccount(EVEAPIModel):
+class ApiAccount(ApiModel):
     """
     Use this class to store EVE user account information. Note that its use is
     entirely optional and up to the developer's discretion.
@@ -31,7 +31,7 @@ class EVEAccount(EVEAPIModel):
                                    help_text="User-provided description.")
     api_key = models.CharField(max_length=64, verbose_name="API Key")
     api_user_id = models.IntegerField(verbose_name="API User ID")
-    characters = models.ManyToManyField("EVEPlayerCharacter", blank=True,
+    characters = models.ManyToManyField("ApiPlayerCharacter", blank=True,
                                         null=True)
     api_status = models.IntegerField(choices=API_STATUS_CHOICES,
                                      default=API_STATUS_PENDING,
@@ -53,13 +53,13 @@ class EVEAccount(EVEAPIModel):
     def get_absolute_url(self):
         return reverse('profiles-edit_eve_account', args=[self.id])
 
-class EVEPlayerCharacter(EVEAPIModel):
+class ApiPlayerCharacter(ApiModel):
     """
     Represents an individual player character within the game. Not to be
     confused with an account.
     """
     name = models.CharField(max_length=255, blank=True, null=False)
-    corporation = models.ForeignKey('EVEPlayerCorporation', blank=True, null=True)
+    corporation = models.ForeignKey('ApiPlayerCorporation', blank=True, null=True)
     # TODO: Choices field
     race = models.IntegerField(blank=True, null=True)
     # TODO: Choices field
@@ -72,7 +72,7 @@ class EVEPlayerCharacter(EVEAPIModel):
     attrib_perception = models.IntegerField("Perception", blank=True, null=True)
     attrib_willpower = models.IntegerField("Willpower", blank=True, null=True)
     
-    objects = EVEPlayerCharacterManager()
+    objects = ApiPlayerCharacterManager()
     
     def __unicode__(self):
         if self.name:
@@ -88,7 +88,7 @@ class EVEPlayerCharacter(EVEAPIModel):
         verbose_name = 'Player Character'
         verbose_name_plural = 'Player Characters'
 
-class EVEPlayerAlliance(EVEAPIModel):
+class ApiPlayerAlliance(ApiModel):
     """
     Represents a player-controlled alliance. Updated from the alliance
     EVE XML API puller at intervals.
@@ -99,7 +99,7 @@ class EVEPlayerAlliance(EVEAPIModel):
     member_count = models.IntegerField(blank=True, null=True)
     date_founded = models.DateField(blank=True, null=True)
     
-    objects = EVEPlayerAllianceManager()
+    objects = ApiPlayerAllianceManager()
     
     class Meta:
         app_label = 'eve_api'
@@ -116,7 +116,7 @@ class EVEPlayerAlliance(EVEAPIModel):
     def __str__(self):
         return self.__unicode__()
 
-class EVEPlayerCorporation(EVEAPIModel):
+class ApiPlayerCorporation(ApiModel):
     """
     Represents a player-controlled corporation. Updated from a mixture of
     the alliance and corporation API pullers.
@@ -125,9 +125,9 @@ class EVEPlayerCorporation(EVEAPIModel):
     ticker = models.CharField(max_length=15, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     url = models.URLField(verify_exists=False, blank=True, null=True)
-    ceo_character = models.ForeignKey(EVEPlayerCharacter, blank=True, null=True)
-    #home_station = models.ForeignKey(EVEStation, blank=True, null=False)
-    alliance = models.ForeignKey(EVEPlayerAlliance, blank=True, null=True)
+    ceo_character = models.ForeignKey(ApiPlayerCharacter, blank=True, null=True)
+    #home_station = models.ForeignKey(StaStation, blank=True, null=False)
+    alliance = models.ForeignKey(ApiPlayerAlliance, blank=True, null=True)
     alliance_join_date = models.DateField(blank=True, null=True)
     tax_rate = models.FloatField(blank=True, null=True)
     member_count = models.IntegerField(blank=True, null=True)
@@ -142,7 +142,7 @@ class EVEPlayerCorporation(EVEAPIModel):
     logo_color2 = models.IntegerField(blank=True, null=True)
     logo_color3 = models.IntegerField(blank=True, null=True)
     
-    objects = EVEPlayerCorporationManager()
+    objects = ApiPlayerCorporationManager()
     
     class Meta:
         app_label = 'eve_api'
@@ -157,11 +157,11 @@ class EVEPlayerCorporation(EVEAPIModel):
         
     def query_and_update_corp(self):
         """
-        Takes an EVEPlayerCorporation object and updates it from the 
+        Takes an ApiPlayerCorporation object and updates it from the 
         EVE API service.
         """
         # Pull XML from the EVE API via eve_proxy.
-        dom = EVEPlayerCorporation.objects.api_corp_sheet_xml(self.id)
+        dom = ApiPlayerCorporation.objects.api_corp_sheet_xml(self.id)
         
         # Tuples of pairings of tag names and the attribute on the Corporation
         # object to set the data to.
@@ -182,7 +182,7 @@ class EVEPlayerCorporation(EVEAPIModel):
         
         # Iterate through the tag mappings, setting the values of the tag names
         # (first member of the tuple) to the attribute named in the second member
-        # of the tuple on the EVEPlayerCorporation object.
+        # of the tuple on the ApiPlayerCorporation object.
         for tag_map in tag_mappings:
             try:
                 setattr(self, tag_map[1], 

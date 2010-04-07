@@ -4,29 +4,29 @@ Admin interface models. Automatically detected by admin.autodiscover().
 from django.contrib import admin
 from eve_api.models import *
 
-class EVEAccountAdmin(admin.ModelAdmin):
+class ApiAccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'user')
     search_fields = ['id']
-admin.site.register(EVEAccount, EVEAccountAdmin)
+admin.site.register(ApiAccount, ApiAccountAdmin)
 
-class EVEPlayerCharacterAdmin(admin.ModelAdmin):
+class ApiPlayerCharacterAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'corporation')
     search_fields = ['id', 'name']
-admin.site.register(EVEPlayerCharacter, EVEPlayerCharacterAdmin)
+admin.site.register(ApiPlayerCharacter, ApiPlayerCharacterAdmin)
 
-class EVEPlayerCorporationInline(admin.TabularInline):
-    model = EVEPlayerCorporation
+class ApiPlayerCorporationInline(admin.TabularInline):
+    model = ApiPlayerCorporation
     fields = ('name', 'ticker')
     extra = 0
 
-class EVEPlayerAllianceAdmin(admin.ModelAdmin):
+class ApiPlayerAllianceAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'ticker', 'member_count', 'date_founded')
     search_fields = ['name', 'ticker']
     date_hierarchy = 'date_founded'
-    inlines = [EVEPlayerCorporationInline]
-admin.site.register(EVEPlayerAlliance, EVEPlayerAllianceAdmin)
+    inlines = [ApiPlayerCorporationInline]
+admin.site.register(ApiPlayerAlliance, ApiPlayerAllianceAdmin)
 
-class EVEPlayerCorporationAdmin(admin.ModelAdmin):
+class ApiPlayerCorporationAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'ticker', 'member_count', 'alliance')
     search_fields = ['name', 'ticker']
-admin.site.register(EVEPlayerCorporation, EVEPlayerCorporationAdmin)
+admin.site.register(ApiPlayerCorporation, ApiPlayerCorporationAdmin)

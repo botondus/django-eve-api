@@ -1,7 +1,7 @@
 """
 Standard definitions that don't change.
 """
-# API status definitions for EVEAccount.
+# API status definitions for ApiAccount.
 API_STATUS_PENDING = 0
 API_STATUS_OK = 1
 API_STATUS_AUTH_ERROR = 2

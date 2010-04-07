@@ -15,7 +15,7 @@ if __name__ == "__main__":
     from importer_path import fix_environment
     fix_environment() 
 
-from eve_api.models import EVEPlayerAlliance, EVEPlayerCorporation
+from eve_api.models import ApiPlayerAlliance, ApiPlayerCorporation
 
 def start_full_import():
     """
@@ -25,7 +25,7 @@ def start_full_import():
     eve_db.api_puller.alliances.__start_full_import() OR YOU WON'T GET ALL
     OF THE CORPS (or any at all).
     """
-    alliances = EVEPlayerAlliance.objects.all()
+    alliances = ApiPlayerAlliance.objects.all()
     
     # These two variables are used to track progress.
     alliance_count = alliances.count()
@@ -36,7 +36,7 @@ def start_full_import():
         # Keep the user informed as to the progress.
         print "Alliance %d of %d..." % (current_alliance_num, alliance_count)
         # A list of the alliance's member corps.
-        member_corps = alliance.eveplayercorporation_set.all()
+        member_corps = alliance.ApiPlayerCorporation_set.all()
         # We're getting the list of corps to update from alliance memberships.
         for corp in member_corps:
             print "Querying", corp.id

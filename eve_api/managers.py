@@ -32,26 +32,26 @@ def _api_get_id_from_name(name):
     else:
         return int(object_id)
     
-class EVEPlayerCharacterManager(models.Manager):
+class ApiPlayerCharacterManager(models.Manager):
     def api_get_id_from_name(self, name):
         """
         This uses a common call for corps, characters, and alliances.
         """
         return _api_get_id_from_name(name)
 
-class EVEPlayerAllianceManager(models.Manager):
+class ApiPlayerAllianceManager(models.Manager):
     def api_get_id_from_name(self, name):
         """
         This uses a common call for corps, characters, and alliances.
         """
         return _api_get_id_from_name(name)
 
-class EVEPlayerCorporationManager(models.Manager):
+class ApiPlayerCorporationManager(models.Manager):
     def get_or_query_by_id(self, corp_id):
         """
         Queries for a corporation. If the corp can't be founded, check the
         EVE API service for information on it. If a match still can't be
-        found, return EVEPlayerCorporation.DoesNotExist.
+        found, return ApiPlayerCorporation.DoesNotExist.
         
         corp_id: (int) Corp's ID.
         """

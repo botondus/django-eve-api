@@ -13,11 +13,11 @@ if __name__ == "__main__":
 from django.conf import settings
 from eve_proxy.models import CachedDocument
 from eve_api.api_exceptions import APIAuthException, APINoUserIDException
-from eve_api.models import EVEAccount, EVEPlayerCharacter, EVEPlayerCorporation
+from eve_api.models import ApiAccount, ApiPlayerCharacter, ApiPlayerCorporation
 
 def import_eve_account(api_key, user_id):
     """
-    Imports an account from the API into the EVEAccount model.
+    Imports an account from the API into the ApiAccount model.
     """
     if not user_id:
         raise APINoUserIDException()
@@ -36,9 +36,9 @@ def import_eve_account(api_key, user_id):
     # Create or retrieve the account last to make sure everything
     # before here is good to go.
     try:
-        account = EVEAccount.objects.get(id=user_id)
-    except EVEAccount.DoesNotExist:
-        account = EVEAccount(id=user_id)
+        account = ApiAccount.objects.get(id=user_id)
+    except ApiAccount.DoesNotExist:
+        account = ApiAccount(id=user_id)
 
     account.api_key = api_key
     account.api_user_id = user_id
@@ -49,11 +49,11 @@ def import_eve_account(api_key, user_id):
         try:
             # Get this first, as it's safe.
             corporation_id = node.getAttribute('corporationID')
-            corp, created = EVEPlayerCorporation.objects.get_or_create(id=corporation_id)
+            corp, created = ApiPlayerCorporation.objects.get_or_create(id=corporation_id)
             # Do this last, since the things we retrieved above are used
-            # on the EVEPlayerCharacter object's fields.
+            # on the ApiPlayerCharacter object's fields.
             character_id = node.getAttribute('characterID')
-            pchar, created = EVEPlayerCharacter.objects.get_or_create(id=character_id)
+            pchar, created = ApiPlayerCharacter.objects.get_or_create(id=character_id)
             name = node.getAttribute('name')
             # Save these for last to keep the save count low.
             pchar.name = name

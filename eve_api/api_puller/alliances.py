@@ -15,7 +15,7 @@ if __name__ == "__main__":
     fix_environment() 
      
 from django.conf import settings
-from eve_api.models import EVEPlayerAlliance, EVEPlayerCorporation
+from eve_api.models import ApiPlayerAlliance, ApiPlayerCorporation
 from eve_proxy.models import CachedDocument
 
 # This stores a list of all corps whose alliance attribute has been updated.
@@ -36,7 +36,7 @@ def __update_corp_from_alliance_node(alliance_node, alliance):
             # This is probably a Text node, ignore it.
             continue
         
-        corp, created = EVEPlayerCorporation.objects.get_or_create(id=corporation_id)
+        corp, created = ApiPlayerCorporation.objects.get_or_create(id=corporation_id)
         corp.id = corporation_id
         corp.alliance = alliance
         corp.alliance_join_date = datetime.strptime(alliance_node.getAttribute('startDate'),
@@ -52,7 +52,7 @@ def __remove_invalid_corp_alliance_memberships():
     data sets, it has no alliance affiliation and needs to be set to no
     alliance if it is not already a None value.
     """
-    all_corps = EVEPlayerCorporation.objects.all()
+    all_corps = ApiPlayerCorporation.objects.all()
     # This is not terribly efficient, but it will do for a background process.
     for corp in all_corps:
         """
@@ -107,11 +107,11 @@ def __start_full_import():
             continue
         
         """
-        Search for an existing EVEPlayerAlliance object with the given
+        Search for an existing ApiPlayerAlliance object with the given
         alliance ID. Create one if it doesn't exist, retrieve the existing
         object if it's already there.
         """
-        alliance, created = EVEPlayerAlliance.objects.get_or_create(id=alliance_id)
+        alliance, created = ApiPlayerAlliance.objects.get_or_create(id=alliance_id)
         alliance.id = alliance_id
         alliance.name = alliance_node.getAttribute('name')
         alliance.ticker = alliance_node.getAttribute('shortName')
