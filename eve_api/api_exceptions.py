@@ -10,17 +10,3 @@ class APIInvalidCorpIDException(Exception):
         
     def __str___(self):
         return repr(self.value)
-
-class APIAuthException(Exception):
-    """
-    Raised when an invalid userID and/or authKey were provided.
-    """
-    def __str__(self):
-        return "An authentication was encountered while querying the EVE API."
-    
-class APINoUserIDException(Exception):
-    """
-    Raised when a userID is required, but missing or mal-formed.
-    """
-    def __str__(self):
-        return "This query requires a valid userID, but yours is either missing or invalid."

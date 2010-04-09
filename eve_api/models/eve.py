@@ -2,15 +2,28 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from eve_api.api_puller.eve import character_id
+from eve_api.api_puller.eve import alliance_list
 from eve_api.models.base import ApiModel
 
 class ApiPlayerAllianceManager(models.Manager):
-    def get_from_name(self, name):
+    def get_via_name(self, name, **kwargs):
         """
         Returns the matching model, given a name. Note that there is no
         way to type check this from the API, so be careful with this.
         """
-        return character_id.query_get_model_from_name(ApiPlayerCharacter, name)
+        return character_id.query_get_model_from_name(ApiPlayerAlliance, name,
+                                                      **kwargs)
+    
+    def update_all_alliances(self, **kwargs):
+        """
+        Does an AllianceList API query, updating all of the local alliance
+        data from the results. Also creates stub ApiPlayerCorporation objects
+        from the members list.
+        
+        WARNING: This is a very long running query that should only be done
+                 in a background task.
+        """
+        alliance_list.query_alliance_list(**kwargs)
 
 class ApiPlayerAlliance(ApiModel):
     """
@@ -24,7 +37,7 @@ class ApiPlayerAlliance(ApiModel):
     date_founded = models.DateField(blank=True, null=True)
     
     objects = models.Manager()
-    objects = ApiPlayerAllianceManager()
+    api = ApiPlayerAllianceManager()
     
     class Meta:
         app_label = 'eve_api'

@@ -7,7 +7,7 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from eve_proxy.models import CachedDocument
-from eve_api.api_exceptions import APIAuthException, APINoUserIDException
+from eve_proxy.proxy_exceptions import APIAuthException, APINoUserIDException
 from eve_api.app_defines import API_STATUS_OK
 
 def _populate_characters(account, characters_node_children):
@@ -38,7 +38,7 @@ def _populate_characters(account, characters_node_children):
             # This must be a Text node, ignore it.
             continue
 
-def query_character_list(api_key, user_id, *args, **kwargs):
+def query_character_list(api_key, user_id, **kwargs):
     """
     Imports an account from the API into the ApiAccount model.
     
@@ -51,10 +51,9 @@ def query_character_list(api_key, user_id, *args, **kwargs):
         raise APIAuthException()
 
     auth_params = {'userID': user_id, 'apiKey': api_key}
-    no_cache = kwargs.get('no_cache', False)
     account_doc = CachedDocument.objects.api_query('/account/Characters.xml.aspx',
                                                    params=auth_params,
-                                                   no_cache=no_cache)
+                                                   **kwargs)
     #print account_doc.body
 
     dom = minidom.parseString(account_doc.body)

@@ -1,25 +1,25 @@
-#!/usr/bin/env python
 """
 This module pulls the master alliance XML list from the API and dumps it in the
 api_puller/xml_cache directory as needed. All alliance data must be updated
 in bulk, which is done reasonably quickly.
 """
 from xml.dom import minidom
-import os
-import sys
 from datetime import datetime
-
-if __name__ == "__main__":
-    # Only mess with the environmental stuff if this is being ran directly.
-    from importer_path import fix_environment
-    fix_environment() 
-     
 from django.conf import settings
-from eve_api.models import ApiPlayerAlliance, ApiPlayerCorporation
+from django.contrib.contenttypes.models import ContentType
 from eve_proxy.models import CachedDocument
+from eve_proxy.proxy_exceptions import InvalidAPIResponseException
 
 # This stores a list of all corps whose alliance attribute has been updated.
 UPDATED_CORPS = []
+
+def __get_model_class(class_name):
+    """
+    Shortcut method for returning models. This is done to avoid circular
+    dependencies.
+    """
+    return ContentType.objects.get(app_label="eve_api", 
+                                   model=class_name).model_class()
 
 def __update_corp_from_alliance_node(alliance_node, alliance):
     """
@@ -36,6 +36,7 @@ def __update_corp_from_alliance_node(alliance_node, alliance):
             # This is probably a Text node, ignore it.
             continue
         
+        ApiPlayerCorporation = __get_model_class('apiplayercorporation')
         corp, created = ApiPlayerCorporation.objects.get_or_create(id=corporation_id)
         corp.id = corporation_id
         corp.alliance = alliance
@@ -52,6 +53,7 @@ def __remove_invalid_corp_alliance_memberships():
     data sets, it has no alliance affiliation and needs to be set to no
     alliance if it is not already a None value.
     """
+    ApiPlayerCorporation = __get_model_class('apiplayercorporation')
     all_corps = ApiPlayerCorporation.objects.all()
     # This is not terribly efficient, but it will do for a background process.
     for corp in all_corps:
@@ -64,14 +66,15 @@ def __remove_invalid_corp_alliance_memberships():
             corp.alliance = None
             corp.save()
 
-def __start_full_import():
+def query_alliance_list(**kwargs):
     """
     This method runs a full import of all known alliances. This may take a few
     minutes and should be ran regularly if you are maintaining a full corp
     list of all EVE corps as well.
     """
     print "Querying /eve/AllianceList.xml.aspx/"
-    alliance_doc = CachedDocument.objects.api_query('/eve/AllianceList.xml.aspx')
+    alliance_doc = CachedDocument.objects.api_query('/eve/AllianceList.xml.aspx',
+                                                    **kwargs)
     print "Parsing..."
     dom = minidom.parseString(alliance_doc.body)
     result_node_children = dom.getElementsByTagName('result')[0].childNodes
@@ -93,8 +96,8 @@ def __start_full_import():
             continue
         
     if alliances_rowset_node == None:
-        print "No alliance rowset node could be found. Your AllianceList.xml file may be corrupt."
-        sys.exit(1)
+        # No alliance rowset node could be found. CCP server problems.
+        raise InvalidAPIResponseException(alliance_doc.body)
     
     # We now have a list of <row> tags representing each alliance.
     print "Updating alliance and member corporation data..."
@@ -111,6 +114,7 @@ def __start_full_import():
         alliance ID. Create one if it doesn't exist, retrieve the existing
         object if it's already there.
         """
+        ApiPlayerAlliance = __get_model_class('apiplayeralliance')
         alliance, created = ApiPlayerAlliance.objects.get_or_create(id=alliance_id)
         alliance.id = alliance_id
         alliance.name = alliance_node.getAttribute('name')
@@ -125,6 +129,3 @@ def __start_full_import():
     print "Alliances and member corps updated."
     print "Removing corps alliance memberships that are no longer valid..."
     __remove_invalid_corp_alliance_memberships()
-    
-if __name__ == "__main__":
-    __start_full_import()

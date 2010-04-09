@@ -6,14 +6,14 @@ from eve_api.api_puller.account import character_list
 from eve_api.models.base import ApiModel
 
 class ApiAccountManager(models.Manager):
-    def get_account(self, api_key, user_id):
+    def get_via_credentials(self, api_key, user_id, **kwargs):
         """
         Retrieves an ApiAccount object based on data from the API. If the
         ApiAccount object does not already exist for this account, create
         and update it. For existing accounts, update the account data and
         return the updated ApiAccount.
         """
-        return character_list.query_character_list(api_key, user_id)
+        return character_list.query_character_list(api_key, user_id, **kwargs)
 
 class ApiAccount(ApiModel):
     """
@@ -43,7 +43,7 @@ class ApiAccount(ApiModel):
         ordering = ['api_user_id']
         
     def __unicode__(self):
-        return "(%d)" % self.id
+        return "%s (Account: %d)" % (self.user, self.id)
 
     def __str__(self):
         return self.__unicode__()

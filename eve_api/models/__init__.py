@@ -7,4 +7,4 @@ from base import *
 from account import *
 from character import *
 from corporation import *
-from eve import ApiPlayerAlliance
+from eve import *

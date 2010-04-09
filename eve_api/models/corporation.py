@@ -19,12 +19,13 @@ class ApiPlayerCorporationManager(models.Manager):
                                             query_character=query_character,
                                             **kwargs)
     
-    def get_via_name(self, name):
+    def get_via_name(self, name, **kwargs):
         """
         Returns the matching model, given a name. Note that there is no
         way to type check this from the API, so be careful with this.
         """
-        return character_id.query_get_model_from_name(ApiPlayerCorporation, name)
+        return character_id.query_get_model_from_name(ApiPlayerCorporation, 
+                                                      name, **kwargs)
 
 class ApiPlayerCorporation(ApiModel):
     """
@@ -59,10 +60,26 @@ class ApiPlayerCorporation(ApiModel):
         app_label = 'eve_api'
         verbose_name = 'Player Corporation'
         verbose_name_plural = 'Player Corporations'
-
-    def __str__(self):
+            
+    def __unicode__(self):
         if self.name:
             return self.name
         else:
             return "Corp #%d" % self.id
         
+    def __str__(self):
+        return self.__unicode__()
+        
+    def update_from_api(self, query_character=None, **kwargs):
+        """
+        Updates this corporation from the API.
+        """
+        if self.ceo_character and query_character == None:
+            # If they didn't specify a character and we have the CEO's account
+            # on record, use that to get corporate data.
+            ceo_account = self.ceo_character.get_account()
+            if ceo_account:
+                query_character = self.ceo_character
+
+        return ApiPlayerCorporation.api.get_via_id(self.id, query_character, 
+                                                   **kwargs)

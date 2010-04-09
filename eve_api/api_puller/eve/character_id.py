@@ -1,7 +1,7 @@
 from xml.dom import minidom
 from eve_proxy.models import CachedDocument
 
-def query_get_model_from_name(child_model, name):
+def query_get_model_from_name(child_model, name, **kwargs):
     """
     Queries the EVE API looking for the ID of the specified corporation,
     alliance, or character based on its name. This is not case sensitive.
@@ -13,7 +13,8 @@ def query_get_model_from_name(child_model, name):
     name: (str) Name to search for.
     """
     query_doc = CachedDocument.objects.api_query('/eve/CharacterID.xml.aspx',
-                                                 params={'names': name})
+                                                 params={'names': name},
+                                                 **kwargs)
     query_dat = query_doc.body.decode("utf-8", "replace")
     dom = minidom.parseString(query_dat)
     

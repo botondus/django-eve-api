@@ -5,12 +5,12 @@ from eve_api.api_puller.eve.character_id import query_get_model_from_name
 from eve_api.models.base import ApiModel
 
 class ApiPlayerCharacterManager(models.Manager):
-    def get_from_name(self, name):
+    def get_via_name(self, name, **kwargs):
         """
         Returns the matching model, given a name. Note that there is no
         way to type check this from the API, so be careful with this.
         """
-        return query_get_model_from_name(ApiPlayerCharacter, name)
+        return query_get_model_from_name(ApiPlayerCharacter, name, **kwargs)
 
 class ApiPlayerCharacter(ApiModel):
     """
@@ -33,7 +33,12 @@ class ApiPlayerCharacter(ApiModel):
     
     objects = models.Manager()
     api = ApiPlayerCharacterManager()
-    
+        
+    class Meta:
+        app_label = 'eve_api'
+        verbose_name = 'Player Character'
+        verbose_name_plural = 'Player Characters'
+        
     def __unicode__(self):
         if self.name:
             return "%s (%d)" % (self.name, self.id)
@@ -43,7 +48,13 @@ class ApiPlayerCharacter(ApiModel):
     def __str__(self):
         return self.__unicode__()
     
-    class Meta:
-        app_label = 'eve_api'
-        verbose_name = 'Player Character'
-        verbose_name_plural = 'Player Characters'
+    def get_account(self):
+        """
+        Returns the ApiAccount object that owns this character, or None if
+        we don't know.
+        """
+        account = self.apiaccount_set.all()
+        if account:
+            return account[0]
+        else:
+            return None
