@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 """
-Module for updating corp information. If this is ran directly, the module will
-iterate through all known alliances, looking at the corps in each alliance's
-member list. This can be very time-consuming and should not be done often.
+Module for updating corp information. Iterates through all known alliances, 
+looking at the corps in each alliance's member list. This can be very 
+time-consuming and should not be done often.
 
 Within your applications, you may call query_and_update_corp() to update
 an individual corp object as need be.
 
 NOTE: To get corp data, it must be a member of an alliance.
 """
-
-if __name__ == "__main__":
-    # Only mess with the environmental stuff if this is being ran directly.
-    from importer_path import fix_environment
-    fix_environment() 
-
 from eve_api.models import ApiPlayerAlliance, ApiPlayerCorporation
 
 def start_full_import():
@@ -44,12 +38,3 @@ def start_full_import():
             
         # Increment progress counter.
         current_alliance_num += 1
-    
-if __name__ == "__main__":
-    """
-    If ran directly, this will grab all of the corps from the known alliances.
-    
-    WARNING: THIS WILL TAKE A VERY LONG TIME TO RUN! IT IS SUGGESTED YOU ONLY
-    GRAB CORPS AS YOU NEED THEM.
-    """
-    start_full_import()
