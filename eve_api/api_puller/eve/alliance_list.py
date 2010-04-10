@@ -3,7 +3,7 @@ This module pulls the master alliance XML list from the API and dumps it in the
 api_puller/xml_cache directory as needed. All alliance data must be updated
 in bulk, which is done reasonably quickly.
 """
-from xml.dom import minidom
+from xml.etree import ElementTree
 from datetime import datetime
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -25,13 +25,13 @@ def __update_corp_from_alliance_node(alliance_node, alliance):
     """
     Updates a corp's alliance membership from an alliance <row> element.
     """
-    member_corp_nodelist = alliance_node.getElementsByTagName('rowset')[0].childNodes
+    member_corp_nodelist = alliance_node.find('rowset').getchildren()
 
     for node in member_corp_nodelist:
         corp_row_node = None
         try:
             # If this fails, this is a Text node and should be ignored.
-            corporation_id = int(node.getAttribute('corporationID'))
+            corporation_id = int(node.get('corporationID'))
         except AttributeError:
             # This is probably a Text node, ignore it.
             continue
@@ -40,7 +40,7 @@ def __update_corp_from_alliance_node(alliance_node, alliance):
         corp, created = ApiPlayerCorporation.objects.get_or_create(id=corporation_id)
         corp.id = corporation_id
         corp.alliance = alliance
-        corp.alliance_join_date = datetime.strptime(alliance_node.getAttribute('startDate'),
+        corp.alliance_join_date = datetime.strptime(alliance_node.get('startDate'),
                                                   '%Y-%m-%d %H:%M:%S')
         corp.save()
         # Store the corp in the updated corps list for later checks.
@@ -72,39 +72,18 @@ def query_alliance_list(**kwargs):
     minutes and should be ran regularly if you are maintaining a full corp
     list of all EVE corps as well.
     """
-    print "Querying /eve/AllianceList.xml.aspx/"
     alliance_doc = CachedDocument.objects.api_query('/eve/AllianceList.xml.aspx',
                                                     **kwargs)
-    print "Parsing..."
-    dom = minidom.parseString(alliance_doc.body)
-    result_node_children = dom.getElementsByTagName('result')[0].childNodes
     
-    # This will hold a reference to the <rowset name="alliances> Element.
-    alliances_rowset_node = None
-    # For some odd reason, two text nodes and an Element are children of
-    # the result Element. Find the alliances rowset from its children.
-    for node in result_node_children:
-        try:
-            # The node we want has a 'name' attribute.
-            if node.getAttribute('name') == 'alliances':
-                # Store the reference for later use.
-                alliances_rowset_node = node
-                # Look no further.
-                break
-        except AttributeError:
-            # This must be a Text node, ignore it.
-            continue
-        
-    if alliances_rowset_node == None:
-        # No alliance rowset node could be found. CCP server problems.
-        raise InvalidAPIResponseException(alliance_doc.body)
+    tree = ElementTree.fromstring(alliance_doc.body)
+    alliance_rowset = tree.find('result/rowset').getchildren()
     
     # We now have a list of <row> tags representing each alliance.
     print "Updating alliance and member corporation data..."
-    for alliance_node in alliances_rowset_node.childNodes:
+    for alliance_node in alliance_rowset:
         try:
             # If this fails, this is a Text node and should be ignored.
-            alliance_id = int(alliance_node.getAttribute('allianceID'))
+            alliance_id = int(alliance_node.get('allianceID'))
         except AttributeError:
             # This is probably a Text node, ignore it.
             continue
@@ -117,15 +96,15 @@ def query_alliance_list(**kwargs):
         ApiPlayerAlliance = __get_model_class('apiplayeralliance')
         alliance, created = ApiPlayerAlliance.objects.get_or_create(id=alliance_id)
         alliance.id = alliance_id
-        alliance.name = alliance_node.getAttribute('name')
-        alliance.ticker = alliance_node.getAttribute('shortName')
-        alliance.member_count = alliance_node.getAttribute('memberCount')
-        alliance.date_founded = datetime.strptime(alliance_node.getAttribute('startDate'),
+        alliance.name = alliance_node.get('name')
+        alliance.ticker = alliance_node.get('shortName')
+        alliance.member_count = alliance_node.get('memberCount')
+        alliance.date_founded = datetime.strptime(alliance_node.get('startDate'),
                                                   '%Y-%m-%d %H:%M:%S')
         alliance.save()
         # Update member corp alliance attributes.
         __update_corp_from_alliance_node(alliance_node, alliance)
     
-    print "Alliances and member corps updated."
-    print "Removing corps alliance memberships that are no longer valid..."
+    # Alliances and member corps updated.
+    # Removing corps alliance memberships that are no longer valid...
     __remove_invalid_corp_alliance_memberships()

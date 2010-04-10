@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Module for updating corp information. Iterates through all known alliances, 
 looking at the corps in each alliance's member list. This can be very 
