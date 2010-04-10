@@ -30,3 +30,15 @@ class ApiPlayerCorporationAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'ticker', 'member_count', 'alliance')
     search_fields = ['name', 'ticker']
 admin.site.register(ApiPlayerCorporation, ApiPlayerCorporationAdmin)
+
+class ApiPlayerCorporationDivisionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'corporation', 'name', 'account_key')
+    search_fields = ['corporation__name', 'name', 'account_key']
+admin.site.register(ApiPlayerCorporationDivision, 
+                    ApiPlayerCorporationDivisionAdmin)
+
+class ApiPlayerCorporationWalletDivisionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'corporation', 'name', 'account_key')
+    search_fields = ['corporation__name', 'name', 'account_key']
+admin.site.register(ApiPlayerCorporationWalletDivision, 
+                    ApiPlayerCorporationWalletDivisionAdmin)

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from eve_db.models import StaStation
 from eve_api.api_puller.eve import character_id
 from eve_api.api_puller.corporation import corporation_sheet
 from eve_api.managers import ApiPlayerCorporationManager
@@ -37,11 +38,12 @@ class ApiPlayerCorporation(ApiModel):
     description = models.TextField(blank=True, null=True)
     url = models.URLField(verify_exists=False, blank=True, null=True)
     ceo_character = models.ForeignKey('ApiPlayerCharacter', blank=True, null=True)
-    #home_station = models.ForeignKey(StaStation, blank=True, null=False)
+    hq_station = models.ForeignKey(StaStation, blank=True, null=False)
     alliance = models.ForeignKey('ApiPlayerAlliance', blank=True, null=True)
     alliance_join_date = models.DateField(blank=True, null=True)
     tax_rate = models.FloatField(blank=True, null=True)
     member_count = models.IntegerField(blank=True, null=True)
+    member_limit = models.IntegerField(blank=True, null=True)
     shares = models.IntegerField(blank=True, null=True)
     
     # Logo generation stuff
@@ -83,3 +85,49 @@ class ApiPlayerCorporation(ApiModel):
 
         return ApiPlayerCorporation.api.get_via_id(self.id, query_character, 
                                                    **kwargs)
+        
+class ApiPlayerCorporationDivision(ApiModel):
+    """
+    A division within a player-ran corporation.
+    """
+    name = models.CharField(max_length=255, blank=True)
+    account_key = models.IntegerField()
+    corporation = models.ForeignKey(ApiPlayerCorporation)
+    
+    class Meta:
+        app_label = 'eve_api'
+        verbose_name = 'Player Corporation Division'
+        verbose_name_plural = 'Player Corporations Divisions'
+        unique_together = (('corporation', 'account_key'),)
+            
+    def __unicode__(self):
+        if self.name:
+            return self.name
+        else:
+            return "Division #%d" % self.id
+        
+    def __str__(self):
+        return self.__unicode__()
+    
+class ApiPlayerCorporationWalletDivision(ApiModel):
+    """
+    A wallet division within a player-ran corporation.
+    """
+    name = models.CharField(max_length=255, blank=True)
+    account_key = models.IntegerField()
+    corporation = models.ForeignKey(ApiPlayerCorporation)
+    
+    class Meta:
+        app_label = 'eve_api'
+        verbose_name = 'Player Corporation Wallet Division'
+        verbose_name_plural = 'Player Corporations Wallet Divisions'
+        unique_together = (('corporation', 'account_key'),)
+            
+    def __unicode__(self):
+        if self.name:
+            return self.name
+        else:
+            return "Wallet Division #%d" % self.id
+        
+    def __str__(self):
+        return self.__unicode__()
