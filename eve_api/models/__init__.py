@@ -8,3 +8,4 @@ from account import *
 from character import *
 from corporation import *
 from eve import *
+from server import *
