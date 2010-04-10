@@ -1,4 +1,4 @@
-from xml.dom import minidom
+from xml.etree import ElementTree
 from eve_proxy.models import CachedDocument
 
 def query_get_model_from_name(child_model, name, **kwargs):
@@ -16,10 +16,11 @@ def query_get_model_from_name(child_model, name, **kwargs):
                                                  params={'names': name},
                                                  **kwargs)
     query_dat = query_doc.body.decode("utf-8", "replace")
-    dom = minidom.parseString(query_dat)
+    print "BODY", query_dat
+    tree = ElementTree.fromstring(query_dat)
     
-    id_node = dom.getElementsByTagName('row')[0]
-    object_id = id_node.getAttribute('characterID')
+    id_node = tree.find('result/rowset/row')
+    object_id = id_node.get('characterID')
     
     if object_id == '0':
         raise child_model.DoesNotExist('API returned no matches for the given name.')
