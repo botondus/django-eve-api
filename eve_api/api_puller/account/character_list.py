@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 """
 This module abstracts the pulling of account data from the EVE API.
 """
-from xml.dom import minidom
+from xml.etree import ElementTree
 from datetime import datetime
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -19,21 +18,23 @@ def _populate_characters(account, characters_node_children):
                                                    model="apiplayercorporation").model_class()
     ApiPlayerCharacter = ContentType.objects.get(app_label="eve_api", 
                                                 model="apiplayercharacter").model_class()
+
     for node in characters_node_children:
         try:
             # Get this first, as it's safe.
-            corporation_id = node.getAttribute('corporationID')
+            corporation_id = node.get('corporationID')
             corp, created = ApiPlayerCorporation.objects.get_or_create(id=corporation_id)
             # Do this last, since the things we retrieved above are used
             # on the ApiPlayerCharacter object's fields.
-            character_id = node.getAttribute('characterID')
+            character_id = node.get('characterID')
             pchar, created = ApiPlayerCharacter.objects.get_or_create(id=character_id)
-            name = node.getAttribute('name')
+            name = node.get('name')
             # Save these for last to keep the save count low.
             pchar.name = name
             pchar.corporation = corp
+            # This also saves the model.
+            pchar.set_api_last_updated()
             account.characters.add(pchar)
-            pchar.save()
         except AttributeError:
             # This must be a Text node, ignore it.
             continue
@@ -54,10 +55,10 @@ def query_character_list(api_key, user_id, **kwargs):
     account_doc = CachedDocument.objects.api_query('/account/Characters.xml.aspx',
                                                    params=auth_params,
                                                    **kwargs)
-    #print account_doc.body
+    print account_doc.body
 
-    dom = minidom.parseString(account_doc.body)
-    characters_node_children = dom.getElementsByTagName('rowset')[0].childNodes
+    tree = ElementTree.fromstring(account_doc.body)
+    characters_node_children = tree.find('result/rowset').getchildren()
 
     ApiAccount = ContentType.objects.get(app_label="eve_api", 
                                          model="apiaccount").model_class()

@@ -3,7 +3,6 @@
 
 http://wiki.eve-id.net/APIv2_Corp_CorporationSheet_XML
 """
-from xml.dom import minidom
 from xml.etree import ElementTree
 from django.contrib.contenttypes.models import ContentType
 from eve_proxy.models import CachedDocument
@@ -121,8 +120,8 @@ def __transfer_divisions(tree, corp):
 
 def query_corporation_sheet(id, query_character=None, **kwargs):
     """
-    Returns a corp's data sheet from the EVE API in the form of an XML 
-    minidom doc.
+    Returns a corp's data sheet from the EVE API in the form of an 
+    ElementTree Element.
     
     query_character: (ApiPlayerCharacter) To get detailed data about a corp,
                      provide a character that is a member of said corp.

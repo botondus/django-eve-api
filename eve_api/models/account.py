@@ -53,8 +53,9 @@ class ApiAccount(ApiModel):
         Updates this account from the EVE API if an api_key and api_user_id is
         specified.
         """
-        return query_character_list(self.api_key, self.api_user_id,
-                                    *args, **kwargs)
+        return character_list.query_character_list(self.api_key, 
+                                                   self.api_user_id,
+                                                   *args, **kwargs)
     
     def get_absolute_url(self):
         return reverse('profiles-edit_eve_account', args=[self.id])
