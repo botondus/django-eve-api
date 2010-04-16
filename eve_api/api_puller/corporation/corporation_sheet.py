@@ -114,7 +114,7 @@ def __transfer_divisions(tree, corp):
             division.name = row.get('description')
             division.save()
 
-def query_corporation_sheet(id, query_character=None, **kwargs):
+def query_corporation_sheet(corp_or_id, query_character=None, **kwargs):
     """
     Returns a corp's data sheet from the EVE API in the form of an 
     ElementTree Element.
@@ -122,6 +122,13 @@ def query_corporation_sheet(id, query_character=None, **kwargs):
     query_character: (ApiPlayerCharacter) To get detailed data about a corp,
                      provide a character that is a member of said corp.
     """
+    try:
+        id = corp_or_id.id
+        corp = corp_or_id
+    except AttributeError:
+        id = corp_or_id
+        corp = None
+    
     query_params = {}
     if query_character:
         # Character provided, provide their credentials.
@@ -150,8 +157,9 @@ def query_corporation_sheet(id, query_character=None, **kwargs):
         if error_code == '523':
             raise APIInvalidCorpIDException(id)
     
-    ApiPlayerCorporation = get_api_model_class("apiplayercorporation")
-    corp, created = ApiPlayerCorporation.objects.get_or_create(id=int(id))
+    if not corp:
+        ApiPlayerCorporation = get_api_model_class("apiplayercorporation")
+        corp, created = ApiPlayerCorporation.objects.get_or_create(id=int(id))
     
     __transfer_common_values(tree, corp)
     __transfer_ceo(tree, corp)

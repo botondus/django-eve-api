@@ -1,7 +1,7 @@
 from xml.etree import ElementTree
 from eve_proxy.models import CachedDocument
 
-def query_get_model_from_name(child_model, name, **kwargs):
+def query_get_object_from_name(child_model, name, **kwargs):
     """
     Queries the EVE API looking for the ID of the specified corporation,
     alliance, or character based on its name. This is not case sensitive.
@@ -16,7 +16,6 @@ def query_get_model_from_name(child_model, name, **kwargs):
                                                  params={'names': name},
                                                  **kwargs)
     query_dat = query_doc.body.decode("utf-8", "replace")
-    print "BODY", query_dat
     tree = ElementTree.fromstring(query_dat)
     
     id_node = tree.find('result/rowset/row')

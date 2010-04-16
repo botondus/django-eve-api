@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from eve_api.api_puller.eve.character_id import query_get_model_from_name
+from eve_api.api_puller.eve.character_id import query_get_object_from_name
 from eve_api.models.base import ApiModel
 
 class ApiPlayerCharacterManager(models.Manager):
@@ -10,7 +10,7 @@ class ApiPlayerCharacterManager(models.Manager):
         Returns the matching model, given a name. Note that there is no
         way to type check this from the API, so be careful with this.
         """
-        return query_get_model_from_name(ApiPlayerCharacter, name, **kwargs)
+        return query_get_object_from_name(ApiPlayerCharacter, name, **kwargs)
 
 class ApiPlayerCharacter(ApiModel):
     """

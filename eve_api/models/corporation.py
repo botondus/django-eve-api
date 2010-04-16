@@ -15,6 +15,8 @@ class ApiPlayerCorporationManager(models.Manager):
         found, return ApiPlayerCorporation.DoesNotExist.
         
         corp_id: (int) Corp's ID.
+        query_character: (ApiPlayerCharacter) For more details on the corp,
+                         pass a member of the corp.
         """
         return corporation_sheet.query_corporation_sheet(corp_id, 
                                             query_character=query_character,
@@ -25,24 +27,8 @@ class ApiPlayerCorporationManager(models.Manager):
         Returns the matching model, given a name. Note that there is no
         way to type check this from the API, so be careful with this.
         """
-        return character_id.query_get_model_from_name(ApiPlayerCorporation, 
+        return character_id.query_get_object_from_name(ApiPlayerCorporation, 
                                                       name, **kwargs)
-        
-    def update_from_api(self, corp, query_character=None, **kwargs):
-        """
-        Updates this corporation from the API.
-        
-        corp: (ApiPlayerCorporation) The corporation to update.
-        """
-        if corp.ceo_character and query_character == None:
-            # If they didn't specify a character and we have the CEO's account
-            # on record, use that to get corporate data.
-            ceo_account = corp.ceo_character.get_account()
-            if ceo_account:
-                query_character = corp.ceo_character
-
-        return ApiPlayerCorporation.api.get_via_id(corp.id, query_character, 
-                                                   **kwargs)
 
 class ApiPlayerCorporation(ApiModel):
     """
@@ -87,6 +73,26 @@ class ApiPlayerCorporation(ApiModel):
         
     def __str__(self):
         return self.__unicode__()
+    
+    def update_from_api(self, query_character=None, **kwargs):
+        """
+        Updates this corporation from the API.
+        
+        query_character: (ApiPlayerCharacter) More information about the corp
+                         can be pulled if you pass the API details for a
+                         member of the corp.
+        """
+        if self.ceo_character and query_character == None:
+            # If they didn't specify a character and we have the CEO's account
+            # on record, use that to get corporate data.
+            ceo_account = self.ceo_character.get_account()
+            if ceo_account:
+                query_character = self.ceo_character
+
+        return corporation_sheet.query_corporation_sheet(self, 
+                                            query_character=query_character,
+                                            **kwargs)
+        
         
 class ApiPlayerCorporationDivision(ApiModel):
     """
