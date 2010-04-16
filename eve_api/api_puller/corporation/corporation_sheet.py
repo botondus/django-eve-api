@@ -119,13 +119,18 @@ def query_corporation_sheet(corp_or_id, query_character=None, **kwargs):
     Returns a corp's data sheet from the EVE API in the form of an 
     ElementTree Element.
     
+    corp_or_id: (ApiPlayerCorporation or int) A player corporation object to
+                update, or an int matching a corporation's ID number.
     query_character: (ApiPlayerCharacter) To get detailed data about a corp,
                      provide a character that is a member of said corp.
     """
     try:
+        # If the user has provided an int, this will fail.
         id = corp_or_id.id
+        # User has provided a corp object, use that instead of looking one up.
         corp = corp_or_id
     except AttributeError:
+        # User provided an int, no corp object provided.
         id = corp_or_id
         corp = None
     
@@ -158,6 +163,8 @@ def query_corporation_sheet(corp_or_id, query_character=None, **kwargs):
             raise APIInvalidCorpIDException(id)
     
     if not corp:
+        # User did not provide a corporation object, find or create one
+        # to update and return.
         ApiPlayerCorporation = get_api_model_class("apiplayercorporation")
         corp, created = ApiPlayerCorporation.objects.get_or_create(id=int(id))
     
@@ -169,4 +176,5 @@ def query_corporation_sheet(corp_or_id, query_character=None, **kwargs):
     __transfer_divisions(tree, corp)
     corp.set_api_last_updated()
 
+    # This is more useful in the case where a user provides an int.
     return corp
