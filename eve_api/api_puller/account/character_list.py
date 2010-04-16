@@ -1,5 +1,9 @@
 """
-This module abstracts the pulling of account data from the EVE API.
+Retrieves a list of characters associated with an account. Includes names,
+character IDs, their corporation, etc.
+
+/account/Characters.xml.aspx
+http://wiki.eve-id.net/APIv2_Account_Characters_XML
 """
 from xml.etree import ElementTree
 from datetime import datetime
@@ -37,12 +41,14 @@ def _populate_characters(account, characters_node_children):
             # This must be a Text node, ignore it.
             continue
 
-def query_character_list(api_key, user_id, **kwargs):
+def query_character_list(api_key, user_id, account_obj=None, **kwargs):
     """
     Imports an account from the API into the ApiAccount model.
     
     Optional kwargs
-    no_cache: (bool) When True, skip the cache and query the API.
+    account_obj: (ApiAccount) Update the following account object instead
+                 of querying for one. This is used to update ApiAccount
+                 objects in place.
     """
     if not user_id:
         raise APINoUserIDException()
@@ -53,19 +59,23 @@ def query_character_list(api_key, user_id, **kwargs):
     account_doc = CachedDocument.objects.api_query('/account/Characters.xml.aspx',
                                                    params=auth_params,
                                                    **kwargs)
-    print account_doc.body
 
     tree = ElementTree.fromstring(account_doc.body)
     characters_node_children = tree.find('result/rowset').getchildren()
 
-    ApiAccount = get_api_model_class("apiaccount")
-
-    # Create or retrieve the account last to make sure everything
-    # before here is good to go.
-    try:
-        account = ApiAccount.objects.get(id=user_id)
-    except ApiAccount.DoesNotExist:
-        account = ApiAccount(id=user_id)
+    if account_obj == None:
+        # User did not specify an ApiAccount object to use. Query and get or
+        # create one with a matching user_id.
+        ApiAccount = get_api_model_class("apiaccount")
+        # Create or retrieve the account last to make sure everything
+        # before here is good to go.
+        try:
+            account = ApiAccount.objects.get(id=user_id)
+        except ApiAccount.DoesNotExist:
+            account = ApiAccount(id=user_id)
+    else:
+        # User specified an ApiAccount object to use.
+        account = account_obj
 
     account.api_key = api_key
     account.api_user_id = user_id
