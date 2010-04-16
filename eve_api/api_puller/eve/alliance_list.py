@@ -6,20 +6,12 @@ in bulk, which is done reasonably quickly.
 from xml.etree import ElementTree
 from datetime import datetime
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from eve_proxy.models import CachedDocument
 from eve_proxy.proxy_exceptions import InvalidAPIResponseException
+from eve_api.api_puller.util import get_api_model_class
 
 # This stores a list of all corps whose alliance attribute has been updated.
 UPDATED_CORPS = []
-
-def __get_model_class(class_name):
-    """
-    Shortcut method for returning models. This is done to avoid circular
-    dependencies.
-    """
-    return ContentType.objects.get(app_label="eve_api", 
-                                   model=class_name).model_class()
 
 def __update_corp_from_alliance_node(alliance_node, alliance):
     """
@@ -36,7 +28,7 @@ def __update_corp_from_alliance_node(alliance_node, alliance):
             # This is probably a Text node, ignore it.
             continue
         
-        ApiPlayerCorporation = __get_model_class('apiplayercorporation')
+        ApiPlayerCorporation = get_api_model_class('apiplayercorporation')
         corp, created = ApiPlayerCorporation.objects.get_or_create(id=corporation_id)
         corp.id = corporation_id
         corp.alliance = alliance
@@ -53,7 +45,7 @@ def __remove_invalid_corp_alliance_memberships():
     data sets, it has no alliance affiliation and needs to be set to no
     alliance if it is not already a None value.
     """
-    ApiPlayerCorporation = __get_model_class('apiplayercorporation')
+    ApiPlayerCorporation = get_api_model_class('apiplayercorporation')
     all_corps = ApiPlayerCorporation.objects.all()
     # This is not terribly efficient, but it will do for a background process.
     for corp in all_corps:
@@ -93,7 +85,7 @@ def query_alliance_list(**kwargs):
         alliance ID. Create one if it doesn't exist, retrieve the existing
         object if it's already there.
         """
-        ApiPlayerAlliance = __get_model_class('apiplayeralliance')
+        ApiPlayerAlliance = get_api_model_class('apiplayeralliance')
         alliance, created = ApiPlayerAlliance.objects.get_or_create(id=alliance_id)
         alliance.id = alliance_id
         alliance.name = alliance_node.get('name')

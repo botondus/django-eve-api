@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from eve_api.api_puller.eve import character_id
 from eve_api.api_puller.eve import alliance_list
+from eve_api.api_puller.corporation import corps_from_alliances
 from eve_api.models.base import ApiModel
 
 class ApiPlayerAllianceManager(models.Manager):
@@ -24,6 +25,10 @@ class ApiPlayerAllianceManager(models.Manager):
                  in a background task.
         """
         alliance_list.query_alliance_list(**kwargs)
+        
+    def update_all_corporations(self, **kwargs):
+        corps_from_alliances.update_alliance_corporations(**kwargs)
+        
 
 class ApiPlayerAlliance(ApiModel):
     """

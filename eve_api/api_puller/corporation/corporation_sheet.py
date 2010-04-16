@@ -4,9 +4,9 @@
 http://wiki.eve-id.net/APIv2_Corp_CorporationSheet_XML
 """
 from xml.etree import ElementTree
-from django.contrib.contenttypes.models import ContentType
 from eve_proxy.models import CachedDocument
 from eve_db.models import StaStation
+from eve_api.api_puller.util import get_api_model_class
 
 def __transfer_common_values(tree, corp):
     """
@@ -49,8 +49,7 @@ def __transfer_ceo(tree, corp):
     """
     Transfers the CEO data.
     """
-    ApiPlayerCharacter = ContentType.objects.get(app_label="eve_api", 
-                                                   model="apiplayercharacter").model_class()
+    ApiPlayerCharacter = get_api_model_class("apiplayercharacter")
     ceo_id = int(tree.find('result/ceoID').text)
     ceo, created = ApiPlayerCharacter.objects.get_or_create(id=ceo_id)
     corp.ceo_character = ceo
@@ -66,8 +65,7 @@ def __transfer_alliance(tree, corp):
     """
     alliance_id = int(tree.find('result/allianceID').text)
     if alliance_id != 0:
-        ApiPlayerAlliance = ContentType.objects.get(app_label="eve_api", 
-                                                    model="apiplayeralliance").model_class()
+        ApiPlayerAlliance = get_api_model_class("apiplayeralliance")
         alliance, created = ApiPlayerAlliance.objects.get_or_create(id=alliance_id)
         corp.alliance = alliance
         if not alliance.name:
@@ -94,10 +92,8 @@ def __transfer_divisions(tree, corp):
     """
     Transfer corporate divisions and wallet divisions.
     """
-    ApiPlayerCorporationDivision = ContentType.objects.get(app_label="eve_api", 
-                                                model="apiplayercorporationdivision").model_class()
-    ApiPlayerCorporationWalletDivision = ContentType.objects.get(app_label="eve_api", 
-                                                model="apiplayercorporationwalletdivision").model_class()
+    ApiPlayerCorporationDivision = get_api_model_class("apiplayercorporationdivision")
+    ApiPlayerCorporationWalletDivision = get_api_model_class("apiplayercorporationwalletdivision")
     rowsets = tree.findall('result/rowset')
     for rowset in rowsets:
         rowset_name = rowset.get('name')
@@ -139,10 +135,13 @@ def query_corporation_sheet(id, query_character=None, **kwargs):
 
     corp_doc = CachedDocument.objects.api_query('/corp/CorporationSheet.xml.aspx',
                                                 params=query_params, **kwargs)
-    corp_dat = corp_doc.body.decode("utf-8", "replace")
+    #corp_dat = corp_doc.body.decode("utf-8", "replace")
+    #u_attr = unicode(corp_doc.body, 'ascii')
+    #corp_dat = u_attr.encode("utf-8", "replace")
     
     # Convert incoming data to UTF-8.
-    tree = ElementTree.fromstring(corp_dat)
+    #print "RAW", corp_doc.body
+    tree = ElementTree.fromstring(corp_doc.body)
     
     error_node = tree.find('result/error')
     # If there's an error, see if it's because the corp doesn't exist.
@@ -151,8 +150,7 @@ def query_corporation_sheet(id, query_character=None, **kwargs):
         if error_code == '523':
             raise APIInvalidCorpIDException(id)
     
-    ApiPlayerCorporation = ContentType.objects.get(app_label="eve_api", 
-                                                   model="apiplayercorporation").model_class()
+    ApiPlayerCorporation = get_api_model_class("apiplayercorporation")
     corp, created = ApiPlayerCorporation.objects.get_or_create(id=int(id))
     
     __transfer_common_values(tree, corp)

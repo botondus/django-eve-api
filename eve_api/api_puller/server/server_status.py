@@ -1,5 +1,5 @@
 from xml.etree import ElementTree
-from django.contrib.contenttypes.models import ContentType
+from eve_api.api_puller.util import get_api_model_class
 from eve_proxy.models import CachedDocument
 
 def query_server_status(**kwargs):
@@ -13,8 +13,7 @@ def query_server_status(**kwargs):
     server_open = tree.find('result/serverOpen').text
     online_players = tree.find('result/onlinePlayers').text
     
-    ApiServer = ContentType.objects.get(app_label="eve_api", 
-                                        model="apiserver").model_class()
+    ApiServer = get_api_model_class('apiserver')
                                         
     server, created = ApiServer.objects.get_or_create(id=1)
     server.server_open = server_open == 'True'

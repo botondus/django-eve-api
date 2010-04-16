@@ -4,7 +4,7 @@ This module abstracts the pulling of account data from the EVE API.
 from xml.etree import ElementTree
 from datetime import datetime
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
+from eve_api.api_puller.util import get_api_model_class
 from eve_proxy.models import CachedDocument
 from eve_proxy.proxy_exceptions import APIAuthException, APINoUserIDException
 from eve_api.app_defines import API_STATUS_OK
@@ -14,10 +14,8 @@ def _populate_characters(account, characters_node_children):
     Iterate through an account's character list and create/update the
     appropriate ApiPlayerCharacter objects.
     """
-    ApiPlayerCorporation = ContentType.objects.get(app_label="eve_api", 
-                                                   model="apiplayercorporation").model_class()
-    ApiPlayerCharacter = ContentType.objects.get(app_label="eve_api", 
-                                                model="apiplayercharacter").model_class()
+    ApiPlayerCorporation = get_api_model_class("apiplayercorporation")
+    ApiPlayerCharacter = get_api_model_class("apiplayercharacter")
 
     for node in characters_node_children:
         try:
@@ -60,8 +58,7 @@ def query_character_list(api_key, user_id, **kwargs):
     tree = ElementTree.fromstring(account_doc.body)
     characters_node_children = tree.find('result/rowset').getchildren()
 
-    ApiAccount = ContentType.objects.get(app_label="eve_api", 
-                                         model="apiaccount").model_class()
+    ApiAccount = get_api_model_class("apiaccount")
 
     # Create or retrieve the account last to make sure everything
     # before here is good to go.
