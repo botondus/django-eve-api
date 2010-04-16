@@ -1,7 +1,6 @@
 import unittest
 from django.conf import settings
 from eve_api.models import *
-from eve_api.api_puller.account.character_list import query_character_list
 
 class ApiAccountTests(unittest.TestCase):
     """
