@@ -42,3 +42,8 @@ class ApiPlayerCorporationWalletDivisionAdmin(admin.ModelAdmin):
     search_fields = ['corporation__name', 'name', 'account_key']
 admin.site.register(ApiPlayerCorporationWalletDivision, 
                     ApiPlayerCorporationWalletDivisionAdmin)
+
+class ApiJournalRefTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ['name']
+admin.site.register(ApiJournalRefType, ApiJournalRefTypeAdmin)

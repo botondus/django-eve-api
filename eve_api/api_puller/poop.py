@@ -20,8 +20,11 @@ corp = ApiPlayerCorporation.api.get_via_id(corp.id, query_character=charact,
                                            no_cache=False)
 print "BY ID", corp
 """
+"""
 account = ApiAccount.objects.all()[0]
 account.update_from_api()
+"""
+ApiJournalRefType.api.update_all_types()
 
 #print ApiPlayerCharacter.api.get_via_name("Ilyk Halibut")
 #ApiPlayerAlliance.api.update_all_alliances(no_cache=True)

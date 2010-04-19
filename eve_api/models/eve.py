@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from eve_api.api_puller.eve import character_id
 from eve_api.api_puller.eve import alliance_list
 from eve_api.api_puller.corporation import corps_from_alliances
+from eve_api.api_puller.eve import ref_types
 from eve_api.models.base import ApiModel
 
 class ApiPlayerAllianceManager(models.Manager):
@@ -35,8 +36,8 @@ class ApiPlayerAlliance(ApiModel):
     Represents a player-controlled alliance. Updated from the alliance
     EVE XML API puller at intervals.
     """
-    name = models.CharField(max_length=255, blank=True, null=False)
-    ticker = models.CharField(max_length=15, blank=True, null=False)
+    name = models.CharField(max_length=255, blank=True)
+    ticker = models.CharField(max_length=15, blank=True)
     #executor_character = models.ForeignKey(EVECharacter, blank=True, null=False)
     member_count = models.IntegerField(blank=True, null=True)
     date_founded = models.DateField(blank=True, null=True)
@@ -49,6 +50,39 @@ class ApiPlayerAlliance(ApiModel):
         ordering = ['date_founded']
         verbose_name = 'Player Alliance'
         verbose_name_plural = 'Player Alliances'
+    
+    def __unicode__(self):
+        if self.name:
+            return "%s (%d)" % (self.name, self.id)
+        else:
+            return "(#%d)" % self.id
+        
+    def __str__(self):
+        return self.__unicode__()
+    
+class ApiJournalRefTypeManager(models.Manager):    
+    def update_all_types(self, **kwargs):
+        """
+        This API method creates/updates the ApiJournalRefType objects. This
+        should only need to be once, or at any time that CCP adds new 
+        transaction reference types.
+        """
+        ref_types.query_type_list(**kwargs)
+    
+class ApiJournalRefType(ApiModel):
+    """
+    Transaction types used for Corporate and Character journal entries.
+    """
+    name = models.CharField(max_length=255, blank=True)
+    
+    objects = models.Manager()
+    api = ApiJournalRefTypeManager()
+    
+    class Meta:
+        app_label = 'eve_api'
+        ordering = ['id']
+        verbose_name = 'Transaction Ref Type'
+        verbose_name_plural = 'Transaction Ref Type'
     
     def __unicode__(self):
         if self.name:
