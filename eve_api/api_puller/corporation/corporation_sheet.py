@@ -6,6 +6,7 @@ http://wiki.eve-id.net/APIv2_Corp_CorporationSheet_XML
 from xml.etree import ElementTree
 from eve_proxy.models import CachedDocument
 from eve_db.models import StaStation
+from eve_proxy.api_error_exceptions import APIQueryErrorException
 from eve_api.api_puller.util import get_api_model_class
 
 def __transfer_common_values(tree, corp):
@@ -137,7 +138,7 @@ def query_corporation_sheet(corp_or_id, query_character=None, **kwargs):
     query_params = {}
     if query_character:
         # Character provided, provide their credentials.
-        account = query_character.apiaccount_set.all()[0]
+        account = query_character.get_account()
         query_params['userID'] = account.api_user_id
         query_params['apiKey'] = account.api_key
         query_params['characterID'] = query_character.id
@@ -145,8 +146,16 @@ def query_corporation_sheet(corp_or_id, query_character=None, **kwargs):
         # Outsider is looking for details on a corp.
         query_params['corporationID'] = id
 
-    corp_doc = CachedDocument.objects.api_query('/corp/CorporationSheet.xml.aspx',
-                                                params=query_params, **kwargs)
+    ApiPlayerCorporation = get_api_model_class("apiplayercorporation")
+    try:
+        corp_doc = CachedDocument.objects.api_query('/corp/CorporationSheet.xml.aspx',
+                                                    params=query_params, **kwargs)
+    except APIQueryErrorException, exc:
+        if exc.code == 523:
+            # The specified corp doesn't exist.
+            raise ApiPlayerCorporation.DoesNotExist('No such corporation with ID: %s' % id)
+        # Was some other error, re-raise it.
+        raise
     #corp_dat = corp_doc.body.decode("utf-8", "replace")
     #u_attr = unicode(corp_doc.body, 'ascii')
     #corp_dat = u_attr.encode("utf-8", "replace")
@@ -155,17 +164,9 @@ def query_corporation_sheet(corp_or_id, query_character=None, **kwargs):
     #print "RAW", corp_doc.body
     tree = ElementTree.fromstring(corp_doc.body)
     
-    error_node = tree.find('result/error')
-    # If there's an error, see if it's because the corp doesn't exist.
-    if error_node:
-        error_code = error_node.get('code')
-        if error_code == '523':
-            raise APIInvalidCorpIDException(id)
-    
     if not corp:
         # User did not provide a corporation object, find or create one
         # to update and return.
-        ApiPlayerCorporation = get_api_model_class("apiplayercorporation")
         corp, created = ApiPlayerCorporation.objects.get_or_create(id=int(id))
     
     __transfer_common_values(tree, corp)

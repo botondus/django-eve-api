@@ -28,7 +28,7 @@ class ApiPlayerCorporationManager(models.Manager):
         way to type check this from the API, so be careful with this.
         """
         return character_id.query_get_object_from_name(ApiPlayerCorporation, 
-                                                      name, **kwargs)
+                                                      name, **kwargs)[0]
 
 class ApiPlayerCorporation(ApiModel):
     """

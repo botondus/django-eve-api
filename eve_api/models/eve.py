@@ -14,7 +14,7 @@ class ApiPlayerAllianceManager(models.Manager):
         way to type check this from the API, so be careful with this.
         """
         return character_id.query_get_object_from_name(ApiPlayerAlliance, name,
-                                                      **kwargs)
+                                                      **kwargs)[0]
     
     def update_all_alliances(self, **kwargs):
         """

@@ -7,6 +7,7 @@ from eve_api.models import *
 class ApiAccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'user')
     search_fields = ['id']
+    readonly_fields = ('user', 'characters')
 admin.site.register(ApiAccount, ApiAccountAdmin)
 
 class ApiPlayerCharacterAdmin(admin.ModelAdmin):
@@ -42,6 +43,14 @@ class ApiPlayerCorporationWalletDivisionAdmin(admin.ModelAdmin):
     search_fields = ['corporation__name', 'name', 'account_key']
 admin.site.register(ApiPlayerCorporationWalletDivision, 
                     ApiPlayerCorporationWalletDivisionAdmin)
+
+class ApiJournalTransactionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'ref_type', 'owner_name1', 'owner_name2', 'amount', 
+                    'transaction_time')
+    search_fields = ['id']
+    readonly_fields = ('id', 'owner_id1', 'owner_id2', 
+                       'owner_type1', 'owner_type2', 'tax_receiver')
+admin.site.register(ApiJournalTransaction, ApiJournalTransactionAdmin)
 
 class ApiJournalRefTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')

@@ -10,7 +10,6 @@ from datetime import datetime
 from django.conf import settings
 from eve_api.api_puller.util import get_api_model_class
 from eve_proxy.models import CachedDocument
-from eve_proxy.proxy_exceptions import APIAuthException, APINoUserIDException
 from eve_api.app_defines import API_STATUS_OK
 
 def _populate_characters(account, characters_node_children):
@@ -50,11 +49,6 @@ def query_character_list(api_key, user_id, account_obj=None, **kwargs):
                  of querying for one. This is used to update ApiAccount
                  objects in place.
     """
-    if not user_id:
-        raise APINoUserIDException()
-    if not api_key:
-        raise APIAuthException()
-
     auth_params = {'userID': user_id, 'apiKey': api_key}
     account_doc = CachedDocument.objects.api_query('/account/Characters.xml.aspx',
                                                    params=auth_params,
