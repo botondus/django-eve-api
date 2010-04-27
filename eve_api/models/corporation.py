@@ -4,7 +4,6 @@ from django.core.urlresolvers import reverse
 from eve_db.models import StaStation
 from eve_api.api_puller.eve import character_id
 from eve_api.api_puller.corporation import corporation_sheet
-from eve_api.managers import ApiPlayerCorporationManager
 from eve_api.models.base import ApiModel
 
 class ApiPlayerCorporationManager(models.Manager):
