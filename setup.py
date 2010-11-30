@@ -34,8 +34,8 @@ setup(name='django-eve_api',
           'eve_api.models',
           'eve_api.tests'
       ],
-      requires=['django', 'django-eve-db', 'django-eve-proxy'],
-      provides=['django-eve-api'],
+      requires=['django', 'eve_db', 'eve_proxy'],
+      provides=['eve_api'],
       classifiers=CLASSIFIERS,
       keywords=KEYWORDS,
 )
