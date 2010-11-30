@@ -2,7 +2,7 @@
 django-eve-api
 ==============
 
-django-eve-api is a set of Django models meant to make querying the EVE data 
+django-eve-api is a set of `Django`_ models meant to make querying the EVE data 
 API trivial. All parsing of the data returned by the API is handled, as are 
 cache recycle times via django-eve-proxy.
 
@@ -13,16 +13,19 @@ changing and may break periodically.**
 
 Source: https://github.com/gtaylor/django-eve-api
 
+.. _Django: http://djangoproject.com
+
 ---------------
 Getting Started
 ---------------
 
 For details on how to get started using this software, see the 
 `Getting Started`_ page. Note that since this app requires django-eve-db and 
-django-eve-proxy, it may be better to just install django-eve, which wraps all 
-of these into a neat starter project framework.
+django-eve-proxy, it may be better to just install `django-eve`_, which wraps 
+all of these into a neat starter project framework.
 
 .. _Getting Started: https://github.com/gtaylor/django-eve-api/wiki/Getting-started
+.. _django-eve: http://code.google.com/p/django-eve/
 
 -----------
 Development
